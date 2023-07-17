@@ -1,0 +1,46 @@
+name: Elixir CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Elixir
+      uses: erlef/setup-beam@v1
+      with:
+        elixir-version: '1.14.2' # Define the elixir version [required]
+        otp-version: '25.2' # Define the OTP version [required]
+    - name: Restore dependencies cache
+      uses: actions/cache@v2
+      with:
+        path: deps
+        key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+        restore-keys: ${{ runner.os }}-mix-
+    - name: Install dependencies
+      run: mix deps.get
+
+    - name: Compile
+      run: mix compile
+
+    - name: Run Sobelow and capture JSON file
+      id: run-sobelow
+      run: |
+          mix sobelow --format json 
+
+    - name: Check Sobelow Findings
+      id: check-sobelow
+      run: |
+        total_findings=$(echo '${{ steps.run-sobelow.outputs }}' | jq -r '.total_findings')
+        if [[ $total_findings -gt 0 ]]; then
+          echo "Sobelow found $total_findings issues"
+          exit 1
+        fi
