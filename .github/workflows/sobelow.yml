@@ -24,5 +24,8 @@ jobs:
       - id: run-action
         uses: sobelow/action@v1
         with:
-          report: false
-          flags: '--format json'
+          flags: --format json
+      - name: Upload report
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: results.sarif
