@@ -23,6 +23,8 @@ jobs:
       - uses: actions/checkout@v3
       - id: run-action
         uses: sobelow/action@v1
+        with:
+          report: false
       - name: Upload report
         uses: github/codeql-action/upload-sarif@v2
         with:
